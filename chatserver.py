@@ -1,5 +1,6 @@
 import socket
 import time
+import tkinter
 
 host = '127.0.0.1'
 port = 5000
@@ -11,7 +12,7 @@ s.bind((host,port))
 s.setblocking(0)
 
 quitting = False
-print "Server Started."
+print ("Server Started.")
 
 while not quitting:
     try:
@@ -21,7 +22,7 @@ while not quitting:
         if addr not in clients:
             clients.append(addr)
 
-        print time.ctime(time.time()) + str(addr) + ": :" + str(data)
+        print (time.ctime(time.time()) + str(addr) + ": :" + str(data))
         for client in clients:
               s.sendto(data, client)
     except:
