@@ -1,30 +1,54 @@
-import socket
-import time
+from socket import AF_INET, socket, SOCK_STREAM
+from threading import Thread
 
-host = '127.0.0.1'
-port = 5000
 
-clients = []
+def accepting_clients():
+    while True:
+        client, client_address = SERVER.accept()
+        print("%s:%s has connected." % client_address)
+        client.send(bytes("Mukha mo! Type mo pangalan mo tapos enter. Type ka ba?", "utf8"))
+        addresses[client] = client_address
+        Thread(target=handling, args=(client,)).start()
 
-s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-s.bind((host,port))
-s.setblocking(0)
 
-quitting = False
-print "Server Started."
+def handling(client):
+    name = client.recv(1024).decode("utf8")
+    client.send(bytes('Welcome %s! If you ever want to quit, mama mo. Mag-\'q\' ka lang para umalis.' % name, "utf8"))
+    joined_message = "%s has joined the chat! YAAAAAAAS." % name
+    broadcast(bytes(joined_message, "utf8"))
+    clients[client] = name
 
-while not quitting:
-    try:
-        data, addr = s.recvfrom(1024)
-        if "Quit" in str(data):
-            quitting = True
-        if addr not in clients:
-            clients.append(addr)
+    while True:
+        message = client.recv(1024)
+        if message != bytes("q", "utf8"):
+            broadcast(message, name + ": ")
+        else:
+            client.send(bytes("q", "utf8"))
+            client.close()
+            del clients[client]
+            broadcast(bytes("%s has left the chat." % name, "utf8"))
+            break
 
-        print time.ctime(time.time()) + str(addr) + ": :" + str(data)
-        for client in clients:
-              s.sendto(data, client)
-    except:
-              pass
-s.close()
-            
+def broadcast(message, prefix=""):
+    for s in clients:
+        s.send(bytes(prefix, "utf8") + message)
+
+
+clients = {}
+addresses = {}
+
+HOST = '127.0.0.1'
+PORT = 49152
+ADDRESS = (HOST, PORT)
+
+SERVER = socket(AF_INET, SOCK_STREAM)
+SERVER.bind(ADDRESS)
+
+if __name__ == "__main__":
+    SERVER.listen(5)
+    print("The server is now active!")
+    print("Server Address: %s:%s" % ADDRESS)
+    ACCEPTING_T = Thread(target=accepting_clients)
+    ACCEPTING_T.start()
+    ACCEPTING_T.join()
+    SERVER.close()

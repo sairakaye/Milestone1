@@ -1,45 +1,61 @@
-import socket
-import threading
-import time
+from socket import AF_INET, socket, SOCK_STREAM
+from threading import Thread
+import tkinter
 
-tlock = threading.Lock()
-shutdown = False
-
-def receving(name, sock):
-    while not shutdown:
+def receive():
+    while True:
         try:
-            tlock.acquire()
-            while True:
-                data, addr = sock.recvfrom(1024)
-                print(str(data))
-        except:
-            pass
-        finally:
-            tlock.release()
+            message = s.recv(1024).decode("utf8")
+            messages_list.insert(tkinter.END, message)
+        except OSError:
+            break
 
-host = '127.0.0.1'
-port = 0
 
-server = ('127.0.0.1', 5000)
+def send(event=None):
+    message = field_message.get()
+    field_message.set("")
+    s.send(bytes(message, "utf8"))
+    if message == "q":
+        s.close()
+        top.quit()
 
-s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-s.bind((host, port))
-s.setblocking(0)
 
-rT = threading.Thread(target=receving, args=("RecvThread", s))
-rT.start()
+def close_window(event=None):
+    field_message.set("q")
+    send()
 
-alias = raw_input("Name: ")
-message = raw_input(alias + "-> ")
-while message != 'q':
-    if message != '':
-        s.sendto(alias + ": " + message, server)
-    tlock.acquire()
-    message = raw_input(alias + "-> ")
-    tlock.release()
-    time.sleep(0.2)
 
-shutdown = True
-rT.join()
-s.close()
-    
+# GUI Layout
+top = tkinter.Tk()
+top.title("Chatter")
+
+messages_frame = tkinter.Frame(top)
+field_message = tkinter.StringVar()
+field_message.set("Type your messages here.")
+scrollbar = tkinter.Scrollbar(messages_frame)
+
+messages_list = tkinter.Listbox(messages_frame, height=15, width=50, yscrollcommand=scrollbar.set)
+scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
+messages_list.pack(side=tkinter.LEFT, fill=tkinter.BOTH)
+messages_list.pack()
+messages_frame.pack()
+
+entry_field = tkinter.Entry(top, textvariable=field_message)
+entry_field.bind("<Return>", send)
+entry_field.pack()
+send_button = tkinter.Button(top, text="Send", command=send)
+send_button.pack()
+
+top.protocol("WM_DELETE_WINDOW", close_window)
+
+
+HOST = '127.0.0.1'
+PORT = 49152
+ADDRESS = (HOST, PORT)
+
+s = socket(AF_INET, SOCK_STREAM)
+s.connect(ADDRESS)
+
+r_thread= Thread(target=receive)
+r_thread.start()
+tkinter.mainloop()
