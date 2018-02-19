@@ -26,6 +26,7 @@ def handling(client):
         else:
             client.send(bytes("q", "utf8"))
             client.close()
+            print("Connection %s:%s is disconnected." % addresses[client])
             del clients[client]
             broadcast(bytes("%s has left the chat." % name, "utf8"))
             break
