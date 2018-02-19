@@ -22,6 +22,7 @@ def handling(client):
         message = client.recv(1024)
         if message != bytes("q", "utf8"):
             broadcast(message, name + ": ")
+            print(name + " (%s:%s)" % addresses[client] + ": " + message.decode("utf8"))
         else:
             client.send(bytes("q", "utf8"))
             client.close()

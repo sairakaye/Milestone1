@@ -27,7 +27,7 @@ def close_window(event=None):
 
 # GUI Layout
 top = tkinter.Tk()
-top.title("Chatter")
+top.title("NETWORK - Milestone 1")
 
 messages_frame = tkinter.Frame(top)
 field_message = tkinter.StringVar()
