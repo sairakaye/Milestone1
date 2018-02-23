@@ -28,7 +28,6 @@ def close_window(event=None):
 # GUI Layout
 top = tkinter.Tk()
 top.title("NETWORK - Milestone 1")
-
 messages_frame = tkinter.Frame(top)
 field_message = tkinter.StringVar()
 field_message.set("Type your messages here.")
@@ -40,14 +39,17 @@ messages_list.pack(side=tkinter.LEFT, fill=tkinter.BOTH)
 messages_list.pack()
 messages_frame.pack()
 
-entry_field = tkinter.Entry(top, textvariable=field_message)
+users_list = tkinter.Listbox(messages_frame, height=15, width=20, yscrollcommand=scrollbar.set)
+users_list.pack(side=tkinter.RIGHT, fill=tkinter.BOTH)
+users_list.pack()
+
+entry_field = tkinter.Entry(top, textvariable=field_message, width=50)
 entry_field.bind("<Return>", send)
-entry_field.pack()
+entry_field.pack(side=tkinter.LEFT)
 send_button = tkinter.Button(top, text="Send", command=send)
 send_button.pack()
 
 top.protocol("WM_DELETE_WINDOW", close_window)
-
 
 HOST = '127.0.0.1'
 PORT = 49152
