@@ -22,8 +22,13 @@ def all_clients():
 
 def handling(client):
     global client_names
-    global name
     name = client.recv(1024).decode("utf8")
+    # for each socket in clients
+    for s in clients:
+        # continuously accept username inputs while the name is taken
+        while clients[s] == name:
+            client.send(bytes('Username is already taken, Please enter another.', "utf8"))
+            name = client.recv(1024).decode("utf8")
 
     client.send(bytes('Welcome %s! If you ever want to quit, input -\'q\'.' % name, "utf8"))
     joined_message = "%s has joined the chat!" % name
@@ -49,13 +54,13 @@ def handling(client):
         message = client.recv(1024)
         if message != bytes("q", "utf8"):
             if bytes("@","utf8") in message:
-                dest = message.decode("utf8")
-                mes = dest
-                mes = mes[mes.find(" ")+1:]
-                mes = bytes(mes, "utf8")
-                dest = dest[1:]
-                dest = dest[:dest.find(" ")]
-                for s in clients:
+                dest = message.decode("utf8") # decode message
+                mes = dest # assign message to another var
+                mes = mes[mes.find(" ")+1:] # fix sent message to remove @
+                mes = bytes(mes, "utf8") # convert fixed message to bytes
+                dest = dest[1:] # get name to be sent to
+                dest = dest[:dest.find(" ")] # find the space
+                for s in clients: # search clients dictionary to know address
                     if clients[s] == dest or clients[s] == name:
                         privateMessage(mes, s, name + ": ")
                         print(name + "(%s:%s)" % addresses[client] + ": " + message.decode("utf8"))

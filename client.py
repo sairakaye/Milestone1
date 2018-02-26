@@ -12,6 +12,13 @@ def center(win):
     y = (win.winfo_screenheight() // 2) - (height // 2)
     win.geometry('{}x{}+{}+{}'.format(width, height, x, y))
 
+#def send(event=None):
+    #message = field_message.get()
+    #field_message.set("")
+    #s.send(bytes(message, "utf8"))
+    #if message == "q":
+        #s.close()
+        #global_screen.quit()
 
 def enter(event=None):
     if enterText.get() == "" or enterText.get() in user_names:
@@ -57,13 +64,14 @@ def private_message():
     pm_screen.title("Private Message")
     pm_screen.geometry('200x300')
 
-    global pm_message
-    pm_message.set("Enter the name of the person you want to chat with")
-    pm_scrollbar.pack(side=RIGHT, fill=Y)
-
     pm_list.pack(side=LEFT, fill=BOTH)
     pm_list.pack()
     pm_frame.pack()
+
+    global pm_message
+    pm_message.set("Enter the name of the person you want to chat with")
+    pm_list.insert(END, pm_message.get())
+    pm_scrollbar.pack(side=RIGHT, fill=Y)
 
     private_entry.bind(sendPrivate)
     private_entry.pack()
@@ -80,11 +88,10 @@ def sendPrivate():
 
     for i in user_names:
         if i in message:
-            n = i
-            pm_message .set("")
-            pm_list.insert(END, "You are now chatting with " + n)
+            #n = i
+            pm_message.set("")
+            pm_list.insert(END, "You are now chatting with " + i)
             break
-
     else:
         message = "@" + private_entry.get()
         pm_message.set("")
@@ -101,7 +108,6 @@ def sendMessage():
         s.close()
         global global_screen
         global_screen.quit()
-
 
 def onselect(evt):
     global lastselectionList
@@ -130,16 +136,14 @@ def onselect(evt):
     messages_frame.pack()
 
     entry_field = Entry(privateChat, textvariable=field_message)
-    entry_field.bind("<Return>", send)
+    entry_field.bind("<Return>", sendMessage)
     entry_field.pack()
-    send_button = Button(privateChat, text="Send", command=send)
+    send_button = Button(privateChat, text="Send", command=sendMessage)
     send_button.pack()
-
 
 def send_name():
     message = enterText.get()
     s.send(bytes(message, "utf8"))
-
 
 def receive():
     global user_names
@@ -178,7 +182,6 @@ field_message = StringVar()
 pm_message = StringVar()
 
 user_names = []
-name = ""
 
 pm_screen = Tk()
 pm_screen.withdraw()
@@ -186,7 +189,8 @@ pm_frame = Frame(pm_screen)
 pm_scrollbar = Scrollbar(pm_frame)
 pm_list = Listbox(pm_frame, height=15, width=550, yscrollcommand=scrollbar.set)
 
-private_entry = Entry(pm_screen,textvariable=pm_message)
+private_entry = Entry(pm_screen, textvariable=pm_message)
+
 # GUI Home Screen
 master = Tk()
 
