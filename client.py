@@ -12,13 +12,6 @@ def center(win):
     y = (win.winfo_screenheight() // 2) - (height // 2)
     win.geometry('{}x{}+{}+{}'.format(width, height, x, y))
 
-#def send(event=None):
-    #message = field_message.get()
-    #field_message.set("")
-    #s.send(bytes(message, "utf8"))
-    #if message == "q":
-        #s.close()
-        #global_screen.quit()
 
 def enter(event=None):
     if enterText.get() == "" or enterText.get() in user_names:
@@ -37,7 +30,7 @@ def enter_chat():
     global global_screen
     global_screen.deiconify()
     global_screen.title("Global Chat")
-    global_screen.geometry('600x325')
+    global_screen.geometry('600x300')
 
     field_message.set("Type your messages here.")
     scrollbar.pack(side=RIGHT, fill=Y)
@@ -52,51 +45,7 @@ def enter_chat():
     send_button = Button(global_screen, text="Send", command=sendMessage)
     send_button.pack()
 
-    pm_button = Button(global_screen, text="Private Chat", command=private_message)
-    pm_button.pack()
-
     center(global_screen)
-
-
-def private_message():
-    global pm_screen
-    pm_screen.deiconify()
-    pm_screen.title("Private Message")
-    pm_screen.geometry('200x300')
-
-    pm_list.pack(side=LEFT, fill=BOTH)
-    pm_list.pack()
-    pm_frame.pack()
-
-    global pm_message
-    pm_message.set("Enter the name of the person you want to chat with")
-    pm_list.insert(END, pm_message.get())
-    pm_scrollbar.pack(side=RIGHT, fill=Y)
-
-    private_entry.bind(sendPrivate)
-    private_entry.pack()
-
-    private_button = Button(pm_screen, text="Send", command=sendPrivate)
-    private_button.pack()
-
-    center(pm_screen)
-
-
-def sendPrivate():
-    global private_entry
-    message = private_entry.get()
-
-    for i in user_names:
-        if i in message:
-            #n = i
-            pm_message.set("")
-            pm_list.insert(END, "You are now chatting with " + i)
-            break
-    else:
-        message = "@" + private_entry.get()
-        pm_message.set("")
-        pm_list.insert(END, message)
-        s.send(bytes(message, "utf8"))
 
 
 def sendMessage():
@@ -109,41 +58,11 @@ def sendMessage():
         global global_screen
         global_screen.quit()
 
-def onselect(evt):
-    global lastselectionList
-    w = evt.widget
-
-    changedSelection = set(lastselectionList).symmetric_difference(set(w.curselection()))
-    lastselectionList = w.curselection()
-
-    index = int(list(changedSelection)[0])
-    value = w.get(index)
-
-    privateChat = Tk()
-    name = Label(privateChat, text=value)
-    name.pack()
-
-    privateChat.geometry('300x300')
-
-    messages_frame = Frame(privateChat)
-    field_message.set("Type your messages here.")
-    scrollbar = Scrollbar(messages_frame)
-
-    messages_list = Listbox(messages_frame, height=15, width=550, yscrollcommand=scrollbar.set)
-    scrollbar.pack(side=RIGHT, fill=Y)
-    messages_list.pack(side=LEFT, fill=BOTH)
-    messages_list.pack()
-    messages_frame.pack()
-
-    entry_field = Entry(privateChat, textvariable=field_message)
-    entry_field.bind("<Return>", sendMessage)
-    entry_field.pack()
-    send_button = Button(privateChat, text="Send", command=sendMessage)
-    send_button.pack()
 
 def send_name():
     message = enterText.get()
     s.send(bytes(message, "utf8"))
+
 
 def receive():
     global user_names
@@ -160,10 +79,8 @@ def receive():
             elif "Active Users:" in message and "Welcome" in message:
                 sentence = message.split(".")
                 messages_list.insert(END, sentence[1])
-            elif "Active Users:" not in message and "@" not in message:
+            elif "Active Users:" not in message:
                 messages_list.insert(END, message)
-            elif "@" in message:
-                pm_list.insert(END, message)
 
         except OSError:
             break
@@ -179,17 +96,9 @@ scrollbar = Scrollbar(messages_frame)
 messages_list = Listbox(messages_frame, height=15, width=550, yscrollcommand=scrollbar.set)
 
 field_message = StringVar()
-pm_message = StringVar()
 
 user_names = []
-
-pm_screen = Tk()
-pm_screen.withdraw()
-pm_frame = Frame(pm_screen)
-pm_scrollbar = Scrollbar(pm_frame)
-pm_list = Listbox(pm_frame, height=15, width=550, yscrollcommand=scrollbar.set)
-
-private_entry = Entry(pm_screen, textvariable=pm_message)
+name = ""
 
 # GUI Home Screen
 master = Tk()
