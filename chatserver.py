@@ -5,39 +5,86 @@ from threading import Thread
 def accepting_clients():
     while True:
         client, client_address = SERVER.accept()
-        print("%s:%s has connected." % client_address)
-        client.send(bytes("Mukha mo! Type mo pangalan mo tapos enter. Type ka ba?", "utf8"))
+        client.send(bytes("You have connected to the chat room", "utf8"))
         addresses[client] = client_address
         Thread(target=handling, args=(client,)).start()
 
 
+# Function that gets all names of the clients
+def all_clients():
+    global client_names
+    client_names = "Active Users: "
+
+    for names in usernames:
+        if names not in client_names:
+            client_names = client_names + names + ","
+
+
 def handling(client):
+    global client_names
+    global name
     name = client.recv(1024).decode("utf8")
-    client.send(bytes('Welcome %s! If you ever want to quit, mama mo. Mag-\'q\' ka lang para umalis.' % name, "utf8"))
-    joined_message = "%s has joined the chat! YAAAAAAAS." % name
+
+    client.send(bytes('Welcome %s! If you ever want to quit, input -\'q\'.' % name, "utf8"))
+    joined_message = "%s has joined the chat!" % name
+
+    # broadcast the joined message to the global chat room
     broadcast(bytes(joined_message, "utf8"))
     clients[client] = name
+    usernames.append(name)
 
     while True:
+        all_clients()
+        ''' 
+        Check if message is not q, 
+        If no,
+            Check if the message has "@" in front. 
+            If yes, it will be sent as a private message. 
+            Otherwise, it will be sent as a global message
+        Otherwise,
+            Close the client
+            Delete it from the list of sockets
+        '''
+        client.send(bytes(client_names, "utf8"))
         message = client.recv(1024)
         if message != bytes("q", "utf8"):
-            broadcast(message, name + ": ")
-            print(name + " (%s:%s)" % addresses[client] + ": " + message.decode("utf8"))
+            if bytes("@","utf8") in message:
+                dest = message.decode("utf8")
+                mes = dest
+                mes = mes[mes.find(" ")+1:]
+                mes = bytes(mes, "utf8")
+                dest = dest[1:]
+                dest = dest[:dest.find(" ")]
+                for s in clients:
+                    if clients[s] == dest or clients[s] == name:
+                        privateMessage(mes, s, name + ": ")
+                        print(name + "(%s:%s)" % addresses[client] + ": " + message.decode("utf8"))
+            else:
+                broadcast(message, name + ": ")
+                print(name + " (%s:%s)" % addresses[client] + ": " + message.decode("utf8"))
         else:
-            client.send(bytes("q", "utf8"))
             client.close()
             print("Connection %s:%s is disconnected." % addresses[client])
             del clients[client]
             broadcast(bytes("%s has left the chat." % name, "utf8"))
+            usernames.remove(name)
             break
+
 
 def broadcast(message, prefix=""):
     for s in clients:
         s.send(bytes(prefix, "utf8") + message)
 
 
-clients = {}
-addresses = {}
+def privateMessage(message, name, prefix=""):
+    name.send(bytes(prefix, "utf8") + message)
+
+
+clients = {} # dictionary of names, with socket address as the key
+addresses = {} # dictionary of client addresses with client address as the key
+usernames = [] # list of usernames
+client_names = ""
+name = ""
 
 HOST = '127.0.0.1'
 PORT = 49152
